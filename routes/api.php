@@ -18,6 +18,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware('auth:api')->prefix('v1')->group(function () {
+    Route::post('logout', 'Auth\LoginController@logout');
+});
+
 Route::middleware('guest:api')->prefix('v1')->group(function () {
     Route::post('register', 'Auth\RegisterController@register');
 
@@ -27,12 +31,16 @@ Route::middleware('guest:api')->prefix('v1')->group(function () {
     )->name('verification.verify');
 
     Route::post('verification/resend', 'Auth\VerificationController@resend');
-    
+
     Route::post('login', 'Auth\LoginController@login');
 
     Route::post(
-        'password/resetEmail',
-        'Auth\ForgotPasswordController@sendResetLinkEmail'
-    );
+        'forgot-password',
+        'Auth\ForgotPasswordController@forgotPassword'
+    )->name('password.reset');
 
+    Route::post(
+        'reset-password',
+        'Auth\ResetPasswordController@resetPassword'
+    )->name('password.update');
 });

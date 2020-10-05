@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -37,6 +37,8 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
+        $this->verifyAccountRateLimiting();
+
         $this->routes(function () {
             Route::prefix('api')
                 ->middleware('api')
@@ -58,6 +60,22 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60);
+        });
+    }
+
+    /**
+     * Configure the rate limiters for verification resend.
+     *
+     */
+    protected function verifyAccountRateLimiting()
+    {
+        RateLimiter::for('accountverify', function (Request $request) {
+            $key = $request->email;
+            return Limit::perMinute(6)->response(function () {
+                return response()->json([
+                    'message' => 'Too many attempt.'
+                ], 429);
+            });
         });
     }
 }
